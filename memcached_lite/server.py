@@ -1,5 +1,7 @@
-import os,sys,time
+import os,sys,time,random
 from socket import *
+
+random.seed()
 
 if __name__ == '__main__':
     PORT = 9889
@@ -27,6 +29,7 @@ def recvall(sock):
     Function to receive data from the given socket
     :param sock: connection of client
     :return: data sent by the client
+    From P434 Lab 2
     """
 
     BUFF_SIZE = 10  # 1 KiB
@@ -45,6 +48,7 @@ def recvall(sock):
 with open(os.curdir + PATH_DELIM + "data.txt", "r+", encoding="utf-8") as f:
 
     def get(key):
+        time.sleep(random.random())
         lines = f.readlines()
         for l in lines:
             if l.startswith(key):
@@ -52,6 +56,7 @@ with open(os.curdir + PATH_DELIM + "data.txt", "r+", encoding="utf-8") as f:
                 return f"VALUE {key} {len(val)} \r\n{val}\r\n"
 
     def set(key, value):
+        time.sleep(random.random())
         lines = f.readlines()
         for l in lines:
             if l.startswith(key):
