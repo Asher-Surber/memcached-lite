@@ -6,9 +6,9 @@ sock = socket(AF_INET, SOCK_STREAM)
 
 
 def send_request(request):
-    sock.connect(HOST, PORT)
+    sock.connect((HOST, PORT))
     print("Connected on port " + str(PORT) + " to address " + HOST)
-    sock.sendall(request)
+    sock.sendall(request.encode())
     data = sock.recv(1024)
     print(f"{data.decode()}")
     sock.close()
