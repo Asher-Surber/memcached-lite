@@ -64,7 +64,10 @@ if os.path.exists(os.path.normpath("memcached_lite/data.txt")):
                         return "STORED\r\n"
                     finally:
                         return "NOT-STORED\r\n"
-            lines.append(key + " " + value)
+            if len(lines) == 0:
+                lines = list((key + " " + value))
+            else:
+                lines.append(key + " " + value)
             try:
                 f.writelines(lines)
                 return "STORED\r\n"
@@ -110,7 +113,9 @@ if os.path.exists(os.path.normpath("memcached_lite/data.txt")):
             print(f"Address {clientAddr} \n Data: {data.decode()}")
 
 else:
-    with open(os.path.normpath("memcached_lite/data.txt"), "a+", encoding="utf-8") as f:
+    f = open(os.path.normpath("memcached_lite/data.txt"), "w", encoding="utf-8")
+    f.close()
+    with open(os.path.normpath("memcached_lite/data.txt"), "r+", encoding="utf-8") as f:
 
         def get(key):
             time.sleep(random.random())
