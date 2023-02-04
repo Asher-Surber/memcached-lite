@@ -52,26 +52,32 @@ if os.path.exists(os.path.normpath("memcached_lite/data.txt")):
                 if l.startswith(key):
                     val = l.partition(" ")[2]
                     return f"VALUE {key} {len(val)} \r\n{val}\r\n"
+            return "No such value"
 
         def set(key, value):
             time.sleep(random.random())
             lines = f.readlines()
+            #print("DEBUG: " + lines[0])
             for l in lines:
                 if l.startswith(key):
                     l = value
                     try:
-                        f.writelines(lines)
+                        for i in lines:
+                            f.write(i)
+                        f.flush()
                         return "STORED\r\n"
-                    finally:
+                    except:
                         return "NOT-STORED\r\n"
             if len(lines) == 0:
-                lines = list((key + " " + value))
+                lines = list((key + " " + value + "\n"))
             else:
-                lines.append(key + " " + value)
+                lines.append(key + " " + value + "\n")
             try:
-                f.writelines(lines)
+                for i in lines:
+                    f.write(i)
+                f.flush()
                 return "STORED\r\n"
-            finally:
+            except:
                 return "NOT-STORED\r\n"
 
 
@@ -125,58 +131,66 @@ else:
                     val = l.partition(" ")[2]
                     return f"VALUE {key} {len(val)} \r\n{val}\r\n"
 
-        def set(key, value):
-            time.sleep(random.random())
-            lines = f.readlines()
-            for l in lines:
-                if l.startswith(key):
-                    l = value
-                    try:
-                        f.writelines(lines)
-                        return "STORED\r\n"
-                    finally:
-                        return "NOT-STORED\r\n"
-            lines.append(key + " " + value)
-            try:
-                f.writelines(lines)
-                return "STORED\r\n"
-            finally:
-                return "NOT-STORED\r\n"
+    def set(key, value):
+        time.sleep(random.random())
+        lines = f.readlines()
+        #print("DEBUG: " + lines[0])
+        for l in lines:
+            if l.startswith(key):
+                l = value
+                try:
+                    for i in lines:
+                        f.write(i)
+                    f.flush()
+                    return "STORED\r\n"
+                except:
+                    return "NOT-STORED\r\n"
+        if len(lines) == 0:
+            lines = list((key + " " + value + "\n"))
+        else:
+            lines.append(key + " " + value + "\n")
+        try:
+            for i in lines:
+                f.write(i)
+            f.flush()
+            return "STORED\r\n"
+        except:
+            return "NOT-STORED\r\n"
 
 
 
-        while True:
-            clientSock, clientAddr = sock.accept()
-            print("Connected to " + str(clientAddr))
-            
-            # Receive data from Client
+    while True:
+        clientSock, clientAddr = sock.accept()
+        print("Connected to " + str(clientAddr))
+        
+        # Receive data from Client
 
-            data = recvall(clientSock)
-            dataStr = data.decode()
+        data = recvall(clientSock)
+        dataStr = data.decode()
 
-            # parse data, decide what course of action to take, either retrieve, store, or send error
+        # parse data, decide what course of action to take, either retrieve, store, or send error
 
-            if dataStr.startswith("get"):
-                tmp = dataStr.split(" ")
-                key = tmp[1]
-                response = get(key)
-            
-            elif dataStr.startswith("set"):
-                tmp1 = dataStr.split("\r\n")
-                line1 = tmp1[0].split(" ")
-                line2 = tmp1[1].split(" ")
+        if dataStr.startswith("get"):
+            tmp = dataStr.split(" ")
+            key = tmp[1]
+            response = get(key)
+        
+        elif dataStr.startswith("set"):
+            tmp1 = dataStr.split("\r\n")
+            line1 = tmp1[0].split(" ")
+            line2 = tmp1[1].split(" ")
 
-                key = line1[1]
-                valSize = line1[2]
-                val = line2[0]
-                response = set(key, val)
+            key = line1[1]
+            valSize = line1[2]
+            val = line2[0]
+            response = set(key, val)
 
-            else:
-                response = "Invalid command"
+        else:
+            response = "Invalid command"
 
-            # Send data back to client
-            clientSock.sendall(response.encode())
-            clientSock.sendall("END\r\n".encode())
+        # Send data back to client
+        clientSock.sendall(response.encode())
+        clientSock.sendall("END\r\n".encode())
 
-            # Print the received data
-            print(f"Address {clientAddr} \n Data: {data.decode()}")
+        # Print the received data
+        print(f"Address {clientAddr} \n Data: {data.decode()}")
